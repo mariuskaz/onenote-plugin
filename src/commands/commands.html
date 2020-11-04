@@ -1,0 +1,53 @@
+<!-- Copyright (c) Microsoft Corporation. All rights reserved. Licensed under the MIT License. -->
+
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+
+    <!-- Office JavaScript API -->
+    <script type="text/javascript" src="https://appsforoffice.microsoft.com/lib/1.1/hosted/office.js"></script>
+    <script>
+
+        Office.initialize = function () {
+            SimpleGantt(event);
+        }
+
+        async function SimpleGantt(event) {
+            console.log('Add simple gantt')
+            try {
+                await OneNote.run(async context => {
+
+                    // https://docs.microsoft.com/en-us/javascript/api/onenote/onenote.outline?view=onenote-js-1.1
+                    // https://github.com/OfficeDev/office-js-docs-pr/blob/master/docs/onenote/onenote-add-ins-programming-overview.md
+
+                    let page = context.application.getActivePage(),
+                    html = '<p data-id="gantt"><meta name="gantt" content="">START: </p>',
+                    values = [  ['TASK', 'START', "DURATION", "PERSON"], ['1. Check this first','1', '1', ''] ]
+                    
+                    page
+                    .addOutline(40, 80, html)
+                    .appendTable(2, 4, values)
+                    .appendColumn(["1"])
+
+                    page.load('id, contents')
+                    page.contents.load('items')
+
+                    event.completed()
+                    return context.sync().then( function() {
+                        console.log( 'page', page.contents)
+                    })
+                })
+                
+            } catch (error) {
+                console.log("Error: " + error);
+            }
+
+        }
+    </script>
+</head>
+<body>
+</body>
+</html>
