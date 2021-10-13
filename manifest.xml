@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <OfficeApp xmlns="http://schemas.microsoft.com/office/appforoffice/1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0" xmlns:ov="http://schemas.microsoft.com/office/taskpaneappversionoverrides" xsi:type="TaskPaneApp">
-  <Id>d43183cf-5de0-43dd-84b5-5d187b4045dc</Id>
+  <Id>2f5f925f-b5de-4e9f-9ece-fefef1a6f42c</Id>
   <Version>1.0.0.0</Version>
   <ProviderName>Contoso</ProviderName>
   <DefaultLocale>en-US</DefaultLocale>
-  <DisplayName DefaultValue="Simple Gantt"/>
-  <Description DefaultValue="A template to get started."/>
-  <IconUrl DefaultValue="https://localhost:3000/assets/icon-32.png"/>
-  <HighResolutionIconUrl DefaultValue="https://localhost:3000/assets/icon-80.png"/>
+  <DisplayName DefaultValue="Add tasks to Todoist"/>
+  <Description DefaultValue="Simple tools for Onenote web"/>
+  <IconUrl DefaultValue="https://localhost:3000/assets/todoist-32.png"/>
+  <HighResolutionIconUrl DefaultValue="https://localhost:3000/assets/todoist-80.png"/>
   <SupportUrl DefaultValue="https://www.contoso.com/help"/>
   <AppDomains>
-    <AppDomain>ardi.lt</AppDomain>
+    <AppDomain>https://www.contoso.com</AppDomain>
   </AppDomains>
   <Hosts>
     <Host Name="Notebook"/>
@@ -30,13 +30,13 @@
           </GetStarted>
           <FunctionFile resid="Commands.Url"/>
           <ExtensionPoint xsi:type="PrimaryCommandSurface">
-            <OfficeTab id="TabInsert">
-              <Group id="CommandsGroup">
-                <Label resid="CommandsGroup.Label"/>
+            <OfficeTab id="TabHome">
+              <Group id="TasksGroup">
+                <Label resid="TasksGroup.Label"/>
                 <Icon>
-                  <bt:Image size="16" resid="Icon.16x16"/>
-                  <bt:Image size="32" resid="Icon.32x32"/>
-                  <bt:Image size="80" resid="Icon.80x80"/>
+                  <bt:Image size="16" resid="Todoist.16x16"/>
+                  <bt:Image size="32" resid="Todoist.32x32"/>
+                  <bt:Image size="80" resid="Todoist.80x80"/>
                 </Icon>
                 <Control xsi:type="Button" id="TaskpaneButton">
                   <Label resid="TaskpaneButton.Label"/>
@@ -45,14 +45,38 @@
                     <Description resid="TaskpaneButton.Tooltip"/>
                   </Supertip>
                   <Icon>
-                    <bt:Image size="16" resid="Icon.16x16"/>
-                    <bt:Image size="32" resid="Icon.32x32"/>
-                    <bt:Image size="80" resid="Icon.80x80"/>
+                    <bt:Image size="16" resid="Todoist.16x16"/>
+                    <bt:Image size="32" resid="Todoist.32x32"/>
+                    <bt:Image size="80" resid="Todoist.80x80"/>
                   </Icon>
-                  <!-- Action xsi:type="ShowTaskpane">
+                  <Action xsi:type="ShowTaskpane">
                     <TaskpaneId>ButtonId1</TaskpaneId>
                     <SourceLocation resid="Taskpane.Url"/>
-                  </Action -->
+                  </Action>
+                </Control>
+              </Group>
+            </OfficeTab>
+          </ExtensionPoint>
+          <ExtensionPoint xsi:type="PrimaryCommandSurface">
+            <OfficeTab id="TabInsert">
+              <Group id="ChartsGroup">
+                <Label resid="ChartsGroup.Label"/>
+                <Icon>
+                  <bt:Image size="16" resid="Gantt.16x16"/>
+                  <bt:Image size="32" resid="Gantt.32x32"/>
+                  <bt:Image size="80" resid="Gantt.80x80"/>
+                </Icon>
+                <Control xsi:type="Button" id="GanttButton">
+                  <Label resid="GanttButton.Label"/>
+                  <Supertip>
+                    <Title resid="GanttButton.Label"/>
+                    <Description resid="GanttButton.Tooltip"/>
+                  </Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Gantt.16x16"/>
+                    <bt:Image size="32" resid="Gantt.32x32"/>
+                    <bt:Image size="80" resid="Gantt.80x80"/>
+                  </Icon>
                   <Action xsi:type="ExecuteFunction">
                     <FunctionName>SimpleGantt</FunctionName>
                   </Action>
@@ -65,9 +89,12 @@
     </Hosts>
     <Resources>
       <bt:Images>
-        <bt:Image id="Icon.16x16" DefaultValue="https://localhost:3000/assets/icon-16.png"/>
-        <bt:Image id="Icon.32x32" DefaultValue="https://localhost:3000/assets/icon-32.png"/>
-        <bt:Image id="Icon.80x80" DefaultValue="https://localhost:3000/assets/icon-80.png"/>
+        <bt:Image id="Todoist.16x16" DefaultValue="https://localhost:3000/assets/todoist-16.png"/>
+        <bt:Image id="Todoist.32x32" DefaultValue="https://localhost:3000/assets/todoist-32.png"/>
+        <bt:Image id="Todoist.80x80" DefaultValue="https://localhost:3000/assets/todoist-80.png"/>
+        <bt:Image id="Gantt.16x16" DefaultValue="https://localhost:3000/assets/gantt-16.png"/>
+        <bt:Image id="Gantt.32x32" DefaultValue="https://localhost:3000/assets/gantt-32.png"/>
+        <bt:Image id="Gantt.80x80" DefaultValue="https://localhost:3000/assets/gantt-80.png"/>
       </bt:Images>
       <bt:Urls>
         <bt:Url id="GetStarted.LearnMoreUrl" DefaultValue="https://go.microsoft.com/fwlink/?LinkId=276812"/>
@@ -75,13 +102,16 @@
         <bt:Url id="Taskpane.Url" DefaultValue="https://localhost:3000/taskpane.html"/>
       </bt:Urls>
       <bt:ShortStrings>
-        <bt:String id="GetStarted.Title" DefaultValue="Get started with your sample add-in!"/>
-        <bt:String id="CommandsGroup.Label" DefaultValue="Charts"/>
-        <bt:String id="TaskpaneButton.Label" DefaultValue="Simple Gantt"/>
+        <bt:String id="GetStarted.Title" DefaultValue="Simple tools for OneNote Web"/>
+        <bt:String id="TasksGroup.Label" DefaultValue="Tasks"/>
+        <bt:String id="ChartsGroup.Label" DefaultValue="Charts"/>
+        <bt:String id="TaskpaneButton.Label" DefaultValue="Add tasks"/>
+        <bt:String id="GanttButton.Label" DefaultValue="Gantt"/>
       </bt:ShortStrings>
       <bt:LongStrings>
-        <bt:String id="GetStarted.Description" DefaultValue="Your sample add-in loaded succesfully. Go to the HOME tab and click the 'Show Taskpane' button to get started."/>
+        <bt:String id="GetStarted.Description" DefaultValue="Add-in loaded succesfully."/>
         <bt:String id="TaskpaneButton.Tooltip" DefaultValue="Click to Show a Taskpane"/>
+        <bt:String id="GanttButton.Tooltip" DefaultValue="Insert simple Gantt chart"/>
       </bt:LongStrings>
     </Resources>
   </VersionOverrides>
