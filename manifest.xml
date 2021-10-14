@@ -4,7 +4,7 @@
   <Version>1.0.0.0</Version>
   <ProviderName>Contoso</ProviderName>
   <DefaultLocale>en-US</DefaultLocale>
-  <DisplayName DefaultValue="Add tasks to Todoist"/>
+  <DisplayName DefaultValue="Simple tools"/>
   <Description DefaultValue="Simple tools for Onenote web"/>
   <IconUrl DefaultValue="https://localhost:3000/assets/todoist-32.png"/>
   <HighResolutionIconUrl DefaultValue="https://localhost:3000/assets/todoist-80.png"/>
@@ -105,7 +105,7 @@
         <bt:String id="GetStarted.Title" DefaultValue="Simple tools for OneNote Web"/>
         <bt:String id="TasksGroup.Label" DefaultValue="Tasks"/>
         <bt:String id="ChartsGroup.Label" DefaultValue="Charts"/>
-        <bt:String id="TaskpaneButton.Label" DefaultValue="Add tasks"/>
+        <bt:String id="TaskpaneButton.Label" DefaultValue="Tasks"/>
         <bt:String id="GanttButton.Label" DefaultValue="Gantt"/>
       </bt:ShortStrings>
       <bt:LongStrings>
