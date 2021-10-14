@@ -1,14 +1,19 @@
 /* eslint-disable */
-import "../../assets/todoist-16.png";
-import "../../assets/todoist-32.png";
-import "../../assets/todoist-80.png";
-import "../../assets/gantt-16.png";
-import "../../assets/gantt-32.png";
-import "../../assets/gantt-80.png";
+import "../../assets/todoist-16.png"
+import "../../assets/todoist-32.png"
+import "../../assets/todoist-80.png"
+import "../../assets/gantt-16.png"
+import "../../assets/gantt-32.png"
+import "../../assets/gantt-80.png"
 
-let token = localStorage["todoist_token"] || "none",
-tasks = [],
-view = {
+import alert from "../components/alert.js"
+import status from "../components/status.js"
+import connect from "../components/connect.js"
+import settings from "../components/settings.js"
+
+let view = {
+
+	tasks: [],
 
 	get(id) {
 		return document.getElementById(id)
@@ -16,7 +21,7 @@ view = {
 
 	update(data) {
 		for (let id in data) {
-			let el = document.getElementById(id)
+			let el = this.get(id)
 			switch (el.nodeName) {
 				case 'INPUT':
 					el.value = data[id]
@@ -28,42 +33,57 @@ view = {
 					el.innerHTML = data[id]
 			}
 		}
-   },
-
-	alert(alertTitle, alertDetails = "") {
-		this.update({ alertTitle, alertDetails })
-		this.show("alert")
-	},
-
-	hide(id) {
-		this.get(id).style.display = 'none'
-	},
+   	},
  
-	show(id) {
-   		this.get("status").style.display = 'none'
-		this.get(id).style.display = 'inline'
+	show(component) {
+		this.get("app-body").innerHTML = component.template
+		let elements = this.get("app-body").querySelectorAll('[action]')
+		elements.forEach( element => {
+			let action = element.getAttribute('action')
+			element.addEventListener("click", view[action])
+		})
+		
+		let ToggleElements = document.querySelectorAll(".ms-Toggle");
+		for (let i = 0; i < ToggleElements.length; i++) {
+			new fabric['Toggle'](ToggleElements[i]);
+		}
+		return this
+	},
+
+	alert(title, details = "") {
+		this.show(alert).update({ title, details })
 	},
 
 	wait() {
-		view.hide("connect")
-		view.hide("settings")
-		view.hide("alert")
-		view.show("status")
+		view.show(status)
 	},
 
 	connect() {
-		//if (view.get("token").value.length == 0) return
-		token = view.get("token").value
-		localStorage.setItem("todoist_token", token)
-		view.hide("connect")
-		view.sync()
+		let token = view.get("token").value
+		if (token.length > 0) todoist.sync(token)
 	},
 
-	sync() {
+	push() {
+		view.wait()
+		todoist.push(view.tasks)
+	},
+
+	close() {
+		Office.context.ui.closeContainer()
+	},
+
+},
+
+todoist = {
+
+	token: localStorage["todoist_token"] || "none",
+
+	sync(token) {
+		if (token) this.token = token
 
 		let sync_url = "https://api.todoist.com/sync/v8/sync",
 		headers = {
-			'Authorization': 'Bearer ' + token,
+			'Authorization': 'Bearer ' + this.token,
 			'Content-Type': 'application/json',
 		},
 
@@ -81,10 +101,13 @@ view = {
 	
 		.then(res => {
 			res.json().then(data => {
-				view.update({
+				localStorage.setItem("todoist_token", todoist.token)
+
+				view.show(settings).update({
 					avatar: data.user.avatar_medium,
 					user: data.user.full_name,
-					mail: data.user.email
+					mail: data.user.email,
+					tasks: view.tasks.length + " task(s)"
 				})
 
 				let list = view.get("projects")
@@ -94,7 +117,6 @@ view = {
 
 				let projects = view.get("dropdown")
 				new fabric['Dropdown'](projects)
-				view.show("settings")
 			})
 		})
 
@@ -103,15 +125,14 @@ view = {
 		})
 	},
 
-	pushTasks() {
+	push(tasks) {
 		
 		let item = 0,
 		headers = {
-			'Authorization': 'Bearer ' + token,
+			'Authorization': 'Bearer ' + this.token,
 			'Content-Type': 'application/json'
 		}
 
-		view.wait()
 		tasks.forEach( todo => {
 			fetch('https://api.todoist.com/rest/v1/tasks', { 
 				method: 'POST',
@@ -123,7 +144,7 @@ view = {
 				item ++
 				console.log("status: ", res.status)
 				if (item == tasks.length) {
-					Office.context.ui.closeContainer()
+					view.close()
 					window.open("https://todoist.com", "_blank")
 				}
 			})
@@ -140,23 +161,7 @@ view = {
 }
 
 Office.onReady((info) => {
-	if (info.host === Office.HostType.OneNote) {
-
-		let ToggleElements = document.querySelectorAll(".ms-Toggle");
-		for (let i = 0; i < ToggleElements.length; i++) {
-			new fabric['Toggle'](ToggleElements[i]);
-		}
-
-		let CloseElements = document.querySelectorAll(".close");
-		for (let i = 0; i < CloseElements.length; i++) {
-			CloseElements[i].addEventListener("click", closeTaskPane)
-		}
-
-		view.get("login").onclick = view.connect;
-		view.get("submit").onclick = view.pushTasks;
-		getPageTasks()
-
-	}
+	if (info.host === Office.HostType.OneNote) getPageTasks()
 })
 
 export async function getPageTasks() {
@@ -187,7 +192,9 @@ export async function getPageTasks() {
 							strings.push(html)
 							p.load("richtext");
 						}
-						console.log(p.type)
+						if (p.type == "Table"){
+							console.log(p.type, p.table)
+						}
 					})
 				})
 
@@ -195,34 +202,30 @@ export async function getPageTasks() {
 					strings.forEach( html => {
 						let doc = parser.parseFromString(html.value, 'text/html'),
 						tag = doc.querySelector("[data-tag=to-do]")
-						if (tag != null) tasks.push(tag.innerText)
+						if (tag != null) view.tasks.push(tag.innerText)
 					})
 					
-					console.log('tasks found:', tasks.length)
-					view.update({ tasks: tasks.length + " task(s)" })
-					token = "none"
+					console.log('tasks found:', view.tasks.length)
+					todoist.token = "none" // for debug
 
-					if (tasks.length == 0) {
-						view.alert("Sorry, no tasks found!", "No to-do tags found on this page!&emsp;")
-					} else if (token == "none") {
-						view.show("connect")
+					if (view.tasks.length == 0) {
+						view.alert("Sorry, no tasks found!", 
+								   "No to-do tags found on this page!")
+
+					} else if (todoist.token == "none") {
+						view.show(connect)
+						
 					} else {
-						view.sync()
+						todoist.sync()
 					}
 					
 				})
-
 			})
-
 		})
 
 		.catch(error => {
-			view.alert("Sync error!", error);
+			view.alert("Error!", error);
 		})
 
 	})
-}
-
-export async function closeTaskPane() {
-	Office.context.ui.closeContainer();
 }
