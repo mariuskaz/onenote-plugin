@@ -3,35 +3,132 @@
 
 <!DOCTYPE html>
 <html>
-
 <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Simple Gantt</title>
+	<meta charset="UTF-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Simple tool for Onenote</title>
 
-    <!-- Office JavaScript API -->
-    <script type="text/javascript" src="https://appsforoffice.microsoft.com/lib/1.1/hosted/office.js"></script>
+	<!-- Office JavaScript API -->
+	<script type="text/javascript" src="https://appsforoffice.microsoft.com/lib/1.1/hosted/office.js"></script>
 
-    <!-- For more information on Office UI Fabric, visit https://developer.microsoft.com/fabric. -->
-    <link rel="stylesheet" hreffff="https://static2.sharepointonline.com/files/fabric/office-ui-fabric-core/9.6.1/css/fabric.min.css"/>
-    <link rel="stylesheet" href="https://static2.sharepointonline.com/files/fabric/office-ui-fabric-core/10.0.0/css/fabric.min.css" />
+	<!-- https://developer.microsoft.com/en-us/fabric-js/components/textfield/textfield -->
+	<link rel="stylesheet" href="https://static2.sharepointonline.com/files/fabric/office-ui-fabric-js/1.4.0/css/fabric.min.css" />
+	<link rel="stylesheet" href="https://static2.sharepointonline.com/files/fabric/office-ui-fabric-js/1.4.0/css/fabric.components.min.css" />
+	<script src="https://static2.sharepointonline.com/files/fabric/office-ui-fabric-js/1.4.0/js/fabric.min.js"></script>
 
-    <!-- Template styles -->
-    <link href="taskpane.css" rel="stylesheet" type="text/css" />
+	<!-- Customizations -->
+	<link rel="stylesheet" href="taskpane.css" />
 </head>
 
-<body class="mss-font-m mss-welcome ms-Fabric" style="padding:20px">
+<body class="ms-font-m ms-welcome ms-Fabric">
+	<main id="app-body" class="ms-welcome__main" style="padding:15px">
 
-    <P>Create simple Gantt project planner.</P>
-    <div role="button" id="run" class="ms-welcome__action ms-Button ms-Button--hero ms-font-xl">
-        <span class="ms-Button-label">Add Simple Gantt</span>
-    </div>
+		<div id="status" class="view-status">
+			<h3 class="ms-font-xl" style="text-align:center">Please, wait...</h3>
+		</div>
+		
+		<div id="alert" class="view-main">
+			<h3 id="alertTitle" class="ms-font-xl" style="margin-top: -20px;"></h3>
+			<div class="ms-MessageBar ms-MessageBar--error">
+			<div class="ms-MessageBar-content">
+				<div class="ms-MessageBar-icon">
+					<i class="ms-Icon ms-Icon--ErrorBadge" style="padding:5px"></i>
+				</div>
+				<div id="alertDetails" class="ms-MessageBar-text" style="padding:5px 5px 5px 0"></div>
+			</div>
+			</div>
+			<div style="margin:30px 0;">
+			<button class="ms-Button ms-Button--primary close">
+				<span class="ms-Button-icon"><i class="ms-Icon ms-Icon--plus"></i></span> 
+				<span class="ms-Button-label">OK</span> 
+			</button>
+			</div>
+		</div>
 
-    <!-- https://codepen.io/StfBauer/pen/ONrQvM
-    // https://microsoft.github.io/frontend-bootcamp/step2-02/demo/ -->
+		<div id="connect" class="view-main">
+			<h3 class="ms-font-xl"  style="margin-top: -20px;"> Connect to Todoist with personal token </h3>
+			<p style="margin:40px 0;">
+				<img width="30" height="30" src="../../assets/todoist-32.png" /><span class="logo">todoist</span>
+			</p>
+			<div class="ms-TextField">
+				<label class="ms-Label">API token</label>
+				<input id="token" class="ms-TextField-field" type="text" value="" placeholder="" autocomplete="on">
+			</div>
+			<div style="margin-top: 20px;">
+				<button id="login" class="ms-Button ms-Button--primary btn-color-red">
+					<span class="ms-Button-icon"><i class="ms-Icon ms-Icon--plus"></i></span> 
+					<span class="ms-Button-label .btn-color-red">Next</span> 
+					<span class="ms-Button-description">Connect to Todoist</span> 
+				</button>
+				<button class="ms-Button close">
+					<span class="ms-Button-icon"><i class="ms-Icon ms-Icon--plus"></i></span> 
+					<span class="ms-Button-label">Cancel</span> 
+				</button>
+				<div class="ms-MessageBar" style="margin:40px 0">
+					<div class="ms-MessageBar-content">
+						<div class="ms-MessageBar-icon">
+							<i class="ms-Icon ms-Icon--Info"></i>
+						</div>
+						<div class="ms-MessageBar-text">
+							Get your token from 
+							<a class="ms-Link" target="_blank" href="https://todoist.com/app/settings/integrations">Todoist integrations</a>
+						</div>
+					</div>
+				  </div>
+			</div>
+		</div>
 
-    
+		<div id="settings" class="view-main">
+			<h3 class="ms-font-xl"  style="margin-top:-20px;"> Add tasks to Todoist </h3>
+			<div class="ms-Persona">
+				<div class="ms-Persona-imageArea">
+					<img id="avatar" class="ms-Persona-image" src="https://static2.sharepointonline.com/files/fabric/office-ui-fabric-js/images/persona.person.png">
+				</div>
+				<div class="ms-Persona-presence">
+					<i class="ms-Persona-presenceIcon ms-Icon ms-Icon--SkypeCheck"></i>
+				</div>
+				<div class="ms-Persona-details">
+					<div id="user" class="ms-Persona-primaryText">User name</div>
+					<div id="mail" class="ms-Persona-secondaryText">mail</div>
+				</div>
+			</div>
+			<div id="dropdown" class="ms-Dropdown" tabindex="0" style="margin-top: 30px;">
+				<i class="ms-Dropdown-caretDown ms-Icon ms-Icon--ChevronDown"></i>
+				<select id="projects" class="ms-Dropdown-select ms-TextField--underlined">
+					<option value="none">Create new project</option>
+				</select>
+			</div>
+			<div class="ms-MessageBar ms-MessageBar--success" style="margin-top: 10px;">
+				<div class="ms-MessageBar-content">
+					<div class="ms-MessageBar-icon">
+						<i class="ms-Icon ms-Icon--Completed"></i>
+					</div>
+					<div class="ms-MessageBar-text">
+						<b id="tasks">Tasks</b> found on this page and will be added to Todoist project.
+					</div>
+				</div>
+			</div>
+			<div class="ms-Toggle mmms-Toggle--textLeft" style="margin-top: 20px;">
+				<span class="ms-Toggle-description">Add tasks with link to this page</span> 
+				<input type="checkbox" id="demo-toggle-1" class="ms-Toggle-input" />
+				<label for="demo-toggle-1" class="ms-Toggle-field" tabindex="0">
+					<span class="ms-Label ms-Label--off">Off</span> 
+					<span class="ms-Label ms-Label--on">On</span> 
+				</label>
+			</div>
+			<div style="margin-top: 40px;">
+				<button id="submit" class="ms-Button ms-Button--primary">
+					<span class="ms-Button-icon"><i class="ms-Icon ms-Icon--plus"></i></span> 
+					<span class="ms-Button-label">Export</span> 
+				</button>
+				<button class="ms-Button close">
+					<span class="ms-Button-icon"><i class="ms-Icon ms-Icon--plus"></i></span> 
+					<span class="ms-Button-label">Cancel</span> 
+				</button>
+			</div>
+		</div>
+
+	</main>
 </body>
-
 </html>

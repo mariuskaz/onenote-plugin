@@ -15,8 +15,8 @@ function action(event) {
   const message = {
     type: Office.MailboxEnums.ItemNotificationMessageType.InformationalMessage,
     message: "Performed action.",
-    icon: "Icon.80x80",
-    persistent: true
+    icon: "Gantt.80x80",
+    persistent: true,
   };
 
   // Show a notification message
