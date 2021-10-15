@@ -37,25 +37,19 @@ let view = {
  
 	show(component) {
 		this.get("app-body").innerHTML = component.template
-		let elements = this.get("app-body").querySelectorAll('[action]')
+		let elements = this.get('app-body').querySelectorAll('[action]')
 		elements.forEach( element => {
 			let action = element.getAttribute('action')
 			element.addEventListener("click", view[action])
 		})
 		
-		let ToggleElements = document.querySelectorAll(".ms-Toggle");
-		for (let i = 0; i < ToggleElements.length; i++) {
-			new fabric['Toggle'](ToggleElements[i]);
-		}
+		let toggles = document.querySelectorAll(".ms-Toggle")
+		toggles.forEach( toggle => new fabric['Toggle'](toggle) )
 		return this
 	},
 
-	alert(title, details = "") {
+	alert(title, details = "Error") {
 		this.show(alert).update({ title, details })
-	},
-
-	wait() {
-		view.show(status)
 	},
 
 	connect() {
@@ -64,8 +58,12 @@ let view = {
 	},
 
 	push() {
-		view.wait()
+		view.show(status)
 		todoist.push(view.tasks)
+	},
+
+	retry() {
+		getPageTasks()
 	},
 
 	close() {
@@ -92,7 +90,7 @@ todoist = {
 			resource_types: ["all"]
 		}
 
-		view.wait()
+		view.show(status)
 		fetch(sync_url, { 
 			method: 'POST',
 			headers : headers,
@@ -121,7 +119,7 @@ todoist = {
 		})
 
 		.catch(error => {
-			view.alert("Connection failed.", error);
+			view.alert("Connection failed!", error);
 		})
 	},
 
@@ -154,9 +152,7 @@ todoist = {
 			})
 
 		})
-
-		
-	}
+	},
 
 }
 
@@ -166,15 +162,14 @@ Office.onReady((info) => {
 
 export async function getPageTasks() {
 
-	view.wait()
+	view.tasks = []
+	view.show(status)
 	OneNote.run(context => {
 		let parser = new DOMParser(),
 		page = context.application.getActivePage(),
 		outlines = []
 
-		page.load("contents");
 		page.contents.load("items");
-		
 		return context.sync().then(() => {
 			console.log("checking outlines...");
 			page.contents.items.forEach(item => {
@@ -183,7 +178,7 @@ export async function getPageTasks() {
 			})
 
 			return context.sync().then(() => {
-				let strings = [];
+				let strings = [], tables = []
 				console.log("checking paragraphs...");
 				outlines.forEach( item => {
 					item.outline.paragraphs.items.forEach( p => {
@@ -193,7 +188,10 @@ export async function getPageTasks() {
 							p.load("richtext");
 						}
 						if (p.type == "Table"){
-							console.log(p.type, p.table)
+							tables.push(p.table)
+							p.load("table");
+							let c = p.table.getCell(1,1)
+							console.log("cell", c)
 						}
 					})
 				})
@@ -205,6 +203,12 @@ export async function getPageTasks() {
 						if (tag != null) view.tasks.push(tag.innerText)
 					})
 					
+					tables.forEach( table => {
+						console.log('table rows:', table.rowCount)
+						let c = table.getCell(1, 1)
+						//console.log(c.paragraphs.items.length)
+					})
+
 					console.log('tasks found:', view.tasks.length)
 					todoist.token = "none" // for debug
 
@@ -229,3 +233,5 @@ export async function getPageTasks() {
 
 	})
 }
+
+/* https://docs.microsoft.com/en-us/javascript/api/onenote/onenote.outline?view=onenote-js-1.1 */

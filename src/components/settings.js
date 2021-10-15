@@ -31,7 +31,7 @@ export default {
 				</div>
 			</div>
 			<div class="ms-Toggle" style="margin-top: 20px;">
-				<span class="ms-Toggle-description">Add tasks with link to this page</span> 
+				<span class="ms-Toggle-description">Link tasks to this page</span> 
 				<input type="checkbox" id="demo-toggle-1" class="ms-Toggle-input" />
 				<label for="demo-toggle-1" class="ms-Toggle-field" tabindex="0">
 					<span class="ms-Label ms-Label--off">Off</span> 

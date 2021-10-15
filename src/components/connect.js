@@ -15,7 +15,7 @@ export default {
 					<span class="ms-Button-label .btn-color-red">Next</span> 
 					<span class="ms-Button-description">Connect to Todoist</span> 
 				</button>
-				<button action="close" class="ms-Button close">
+				<button action="close" class="ms-Button">
 					<span class="ms-Button-icon"><i class="ms-Icon ms-Icon--plus"></i></span> 
 					<span class="ms-Button-label">Cancel</span> 
 				</button>
