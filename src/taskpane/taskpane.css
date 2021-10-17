@@ -4,12 +4,6 @@
     vertical-align:top;
 }
 
-.btn-color-red {
-    background-color: #FF0000;
-    color:white;
-}
-
-.view-status {
-    /* display:none; */
-    margin-top:-20px;
+.ms-welcome__main {
+    padding:15px;
 }

@@ -13,6 +13,9 @@ import settings from "../components/settings.js"
 
 let view = {
 
+	addLinks: false,
+	actions: ["click", "change"],
+	pageTitle: "Onenote",
 	tasks: [],
 
 	get(id) {
@@ -37,18 +40,20 @@ let view = {
  
 	show(component) {
 		this.get("app-body").innerHTML = component.template
-		let elements = this.get('app-body').querySelectorAll('[action]')
-		elements.forEach( element => {
-			let action = element.getAttribute('action')
-			element.addEventListener("click", view[action])
+
+		view.actions.forEach( action => {
+			let elements = this.get('app-body').querySelectorAll("["+action+"]")
+			elements.forEach( el => {
+				el.addEventListener(action, view[el.getAttribute(action)])
+			})
 		})
-		
+
 		let toggles = document.querySelectorAll(".ms-Toggle")
 		toggles.forEach( toggle => new fabric['Toggle'](toggle) )
 		return this
 	},
 
-	alert(title, details = "Error") {
+	alert(title, details = "unknown") {
 		this.show(alert).update({ title, details })
 	},
 
@@ -64,6 +69,13 @@ let view = {
 
 	retry() {
 		getPageTasks()
+	},
+
+	refresh() {
+		let projects = view.get("projects"),
+		project = projects.selectedOptions[0].text
+		if (projects.value == "new") project = view.pageTitle
+		view.update({ project })
 	},
 
 	close() {
@@ -105,7 +117,9 @@ todoist = {
 					avatar: data.user.avatar_medium,
 					user: data.user.full_name,
 					mail: data.user.email,
-					tasks: view.tasks.length + " task(s)"
+					tasks: view.tasks.length + " task(s)",
+					project: view.pageTitle,
+					task: view.tasks[0],
 				})
 
 				let list = view.get("projects")
@@ -123,7 +137,7 @@ todoist = {
 		})
 	},
 
-	push(tasks) {
+	push(tasks = []) {
 		
 		let item = 0,
 		headers = {
@@ -165,12 +179,15 @@ export async function getPageTasks() {
 	view.tasks = []
 	view.show(status)
 	OneNote.run(context => {
+
 		let parser = new DOMParser(),
 		page = context.application.getActivePage(),
 		outlines = []
 
+		page.load("title")
 		page.contents.load("items");
 		return context.sync().then(() => {
+			view.pageTitle = page.title
 			console.log("checking outlines...");
 			page.contents.items.forEach(item => {
 				outlines.push(item)
@@ -191,7 +208,7 @@ export async function getPageTasks() {
 							tables.push(p.table)
 							p.load("table");
 							let c = p.table.getCell(1,1)
-							console.log("cell", c)
+							//console.log("cell", c)
 						}
 					})
 				})
@@ -202,7 +219,8 @@ export async function getPageTasks() {
 						tag = doc.querySelector("[data-tag=to-do]")
 						if (tag != null) view.tasks.push(tag.innerText)
 					})
-					
+
+					/* https://docs.microsoft.com/en-us/javascript/api/onenote/onenote.table?view=onenote-js-1.1 */
 					tables.forEach( table => {
 						console.log('table rows:', table.rowCount)
 						let c = table.getCell(1, 1)
@@ -210,15 +228,15 @@ export async function getPageTasks() {
 					})
 
 					console.log('tasks found:', view.tasks.length)
-					todoist.token = "none" // for debug
+					todoist.token = "none"
 
 					if (view.tasks.length == 0) {
-						view.alert("Sorry, no tasks found!", 
+						view.alert("No tasks found! There is nothing to export.", 
 								   "No to-do tags found on this page!")
 
 					} else if (todoist.token == "none") {
 						view.show(connect)
-						
+
 					} else {
 						todoist.sync()
 					}
@@ -233,5 +251,3 @@ export async function getPageTasks() {
 
 	})
 }
-
-/* https://docs.microsoft.com/en-us/javascript/api/onenote/onenote.outline?view=onenote-js-1.1 */

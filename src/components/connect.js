@@ -1,6 +1,6 @@
 export default {
     template: `
-        <div class="view-main">
+        <div class="view-main ms-u-slideLeftIn40">
 			<h3 class="ms-font-xl"  style="margin-top: -20px;"> Connect to Todoist with personal token </h3>
 			<p style="margin:40px 0;">
 				<img width="30" height="30" src="../../assets/todoist-32.png" /><span class="logo">todoist</span>
@@ -10,12 +10,12 @@ export default {
 				<input id="token" class="ms-TextField-field" type="text" value="" placeholder="" autocomplete="on">
 			</div>
 			<div style="margin-top: 20px;">
-				<button action="connect" class="ms-Button ms-Button--primary btn-color-red">
+				<button click="connect" class="ms-Button ms-Button--primary btn-color-red">
 					<span class="ms-Button-icon"><i class="ms-Icon ms-Icon--plus"></i></span> 
 					<span class="ms-Button-label .btn-color-red">Next</span> 
 					<span class="ms-Button-description">Connect to Todoist</span> 
 				</button>
-				<button action="close" class="ms-Button">
+				<button click="close" class="ms-Button">
 					<span class="ms-Button-icon"><i class="ms-Icon ms-Icon--plus"></i></span> 
 					<span class="ms-Button-label">Cancel</span> 
 				</button>

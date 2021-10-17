@@ -1,8 +1,8 @@
 export default {
     template: `
-        <div class="view-main">
+        <div class="view-main ms-u-slideLeftIn40">
 			<h3 id="title" class="ms-font-xl" style="margin-top: -20px;"></h3>
-			<div class="ms-MessageBar ms-MessageBar--error">
+			<div class="ms-MessageBar ms-MessageBar--info">
 			<div class="ms-MessageBar-content">
 				<div class="ms-MessageBar-icon">
 					<i class="ms-Icon ms-Icon--ErrorBadge" style="padding:5px"></i>
@@ -11,11 +11,11 @@ export default {
 			</div>
 			</div>
 			<div style="margin:30px 0;">
-			<button action="retry" class="ms-Button ms-Button--primary">
+			<button click="retry" class="ms-Button ms-Button--primary">
 				<span class="ms-Button-icon"><i class="ms-Icon ms-Icon--plus"></i></span> 
 				<span class="ms-Button-label">Retry</span> 
 			</button>
-			<button action="close" class="ms-Button">
+			<button click="close" class="ms-Button">
 				<span class="ms-Button-icon"><i class="ms-Icon ms-Icon--plus"></i></span> 
 				<span class="ms-Button-label">Cancel</span> 
 			</button>
