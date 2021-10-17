@@ -119,7 +119,7 @@ todoist = {
 					mail: data.user.email,
 					tasks: view.tasks.length + " task(s)",
 					project: view.pageTitle,
-					task: view.tasks[0],
+					task: view.tasks[0].substring(0, 34),
 				})
 
 				let list = view.get("projects")
@@ -182,72 +182,86 @@ export async function getPageTasks() {
 
 		let parser = new DOMParser(),
 		page = context.application.getActivePage(),
-		outlines = []
+		outlines = [],
+		tables = [],
+		strings = []
 
 		page.load("title")
-		page.contents.load("items");
-		return context.sync().then(() => {
+		page.contents.load("type, items");
+		return context.sync()
+
+		.then(() => {
 			view.pageTitle = page.title
-			console.log("checking outlines...");
 			page.contents.items.forEach(item => {
-				outlines.push(item)
-				item.outline.paragraphs.load("items");
+				if (item.type == 'Outline') {
+					item.load("outline/paragraphs, outline/paragraphs/type")
+					outlines.push(item)
+				}
 			})
+			return context.sync()
+		})
 
-			return context.sync().then(() => {
-				let strings = [], tables = []
-				console.log("checking paragraphs...");
-				outlines.forEach( item => {
-					item.outline.paragraphs.items.forEach( p => {
-						if (p.type == "RichText"){
-							let html = p.richText.getHtml();
-							strings.push(html)
-							p.load("richtext");
-						}
-						if (p.type == "Table"){
-							tables.push(p.table)
-							p.load("table");
-							let c = p.table.getCell(1,1)
-							//console.log("cell", c)
-						}
-					})
-				})
-
-				return context.sync().then(function(){
-					strings.forEach( html => {
-						let doc = parser.parseFromString(html.value, 'text/html'),
-						tag = doc.querySelector("[data-tag=to-do]")
-						if (tag != null) view.tasks.push(tag.innerText)
-					})
+		.then(() => {
+			outlines.forEach(item => {
+				item.outline.paragraphs.items.forEach( p => {
+					if (p.type == "RichText") {
+						p.load("richtext")
+						strings.push(p.richText.getHtml())
+					}
 
 					/* https://docs.microsoft.com/en-us/javascript/api/onenote/onenote.table?view=onenote-js-1.1 */
-					tables.forEach( table => {
-						console.log('table rows:', table.rowCount)
-						let c = table.getCell(1, 1)
-						//console.log(c.paragraphs.items.length)
-					})
 
-					console.log('tasks found:', view.tasks.length)
-					todoist.token = "none"
-
-					if (view.tasks.length == 0) {
-						view.alert("No tasks found! There is nothing to export.", 
-								   "No to-do tags found on this page!")
-
-					} else if (todoist.token == "none") {
-						view.show(connect)
-
-					} else {
-						todoist.sync()
+					if (p.type == "Table") {
+						p.load("table/rows/items/cells/paragraphs/type") 
+						tables.push(p.table)
 					}
-					
 				})
 			})
+			return context.sync()
 		})
 
-		.catch(error => {
-			view.alert("Error!", error);
+		.then(() => {
+			tables.forEach( table => {
+				table.rows.items.forEach( row => {
+					row.cells.items.forEach( cell => {
+						cell.paragraphs.items.forEach( p => {
+							if (p.type == "RichText") {
+								p.load("richtext")
+								strings.push(p.richText.getHtml())
+							}
+						})
+					})
+				}) 
+			})
+			return context.sync()
 		})
 
+		.then(() => {
+			strings.forEach( html => {
+				let doc = parser.parseFromString(html.value, 'text/html'),
+				tag = doc.querySelector("[data-tag=to-do]")
+				if (tag != null) view.tasks.push(tag.innerText)
+			})
+
+			console.log('tasks found:', view.tasks.length)
+			//todoist.token = "none"
+
+			if (view.tasks.length == 0) {
+				view.alert("No tasks found! There is nothing to export.", 
+						"No to-do tags found on this page!")
+
+			} else if (todoist.token == "none") {
+				view.show(connect)
+
+			} else {
+				todoist.sync()
+			}
+		})
+		
 	})
+
+	.catch(error => {
+		view.alert("Error!", error);
+	})
+
 }
