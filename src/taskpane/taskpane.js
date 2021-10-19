@@ -64,8 +64,8 @@ let view = {
 	},
 
 	push() {
-		view.show(status)
-		todoist.push(view.tasks)
+		let projects = view.get('projects')
+		todoist.add(projects.value, view.tasks)
 	},
 
 	retry() {
@@ -138,8 +138,31 @@ todoist = {
 		})
 	},
 
-	push(tasks = []) {
-		
+	add(project = "new", tasks = []) {
+
+		view.show(status)
+		if (project == "new") {
+			fetch('https://api.todoist.com/rest/v1/projects', { 
+				method: 'POST',
+				headers : {
+					'Authorization': 'Bearer ' + this.token,
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({ name: view.pageTitle })
+			})
+			.then(res => res.json())
+			.then(project => todoist.push(project.id, tasks))
+
+		} else {
+			let projectId = parseInt(project)
+			todoist.push(projectId, tasks)
+		}
+
+	},
+
+	push(projectId, tasks) {
+		console.log('projectId', projectId)
+
 		let item = 0,
 		headers = {
 			'Authorization': 'Bearer ' + this.token,
@@ -150,15 +173,15 @@ todoist = {
 			fetch('https://api.todoist.com/rest/v1/tasks', { 
 				method: 'POST',
 				headers : headers,
-				body: JSON.stringify({ content: todo })
+				body: JSON.stringify({ content: todo, project_id: projectId })
 			})
 
 			.then(res => {
 				item ++
-				console.log("status: ", res.status)
+				console.log('task added')
 				if (item == tasks.length) {
+					window.open("https://todoist.com/showProject?id=" + projectId, "_blank")
 					view.close()
-					window.open("https://todoist.com", "_blank")
 				}
 			})
 
@@ -247,16 +270,12 @@ export async function getPageTasks() {
 			console.log('tasks found:', view.tasks.length)
 			//todoist.token = "none"
 
-			if (view.tasks.length == 0) {
+			if (view.tasks.length == 0)
 				view.alert("No tasks found! There is nothing to export.", 
 						   "No to-do tags found on this page!")
-
-			} else if (todoist.token == "none") {
-				view.show(connect)
-
-			} else {
-				todoist.sync()
-			}
+			else if (todoist.token == "none") view.show(connect)
+			else todoist.sync()
+			
 		})
 		
 	})
