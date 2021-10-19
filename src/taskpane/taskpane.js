@@ -65,7 +65,7 @@ let view = {
 
 	push() {
 		let projects = view.get('projects')
-		todoist.add(projects.value, view.tasks)
+		todoist.push(projects.value, view.tasks)
 	},
 
 	retry() {
@@ -138,58 +138,47 @@ todoist = {
 		})
 	},
 
-	add(project = "new", tasks = []) {
+	push(project = "new", tasks = []) {
+		
+		let item = 0, headers = {
+			'Authorization': 'Bearer ' + this.token,
+			'Content-Type': 'application/json'
+		}
 
-		view.show(status)
 		if (project == "new") {
 			fetch('https://api.todoist.com/rest/v1/projects', { 
 				method: 'POST',
-				headers : {
-					'Authorization': 'Bearer ' + this.token,
-					'Content-Type': 'application/json'
-				},
+				headers : headers,
 				body: JSON.stringify({ name: view.pageTitle })
 			})
 			.then(res => res.json())
 			.then(project => todoist.push(project.id, tasks))
 
 		} else {
+
 			let projectId = parseInt(project)
-			todoist.push(projectId, tasks)
+			console.log('projectId', projectId)
+
+			tasks.forEach( todo => {
+				fetch('https://api.todoist.com/rest/v1/tasks', { 
+					method: 'POST',
+					headers : headers,
+					body: JSON.stringify({ content: todo, project_id: projectId })
+				})
+				.then(res => {
+					item ++
+					console.log('tasks:', res.ok)
+					if (item == tasks.length) {
+						window.open("https://todoist.com/showProject?id=" + projectId, "_blank")
+						view.close()
+					}
+				})
+				.catch(error => {
+					view.alert("Task"+ item +" push failed!", error);
+				})
+			})
+			
 		}
-
-	},
-
-	push(projectId, tasks) {
-		console.log('projectId', projectId)
-
-		let item = 0,
-		headers = {
-			'Authorization': 'Bearer ' + this.token,
-			'Content-Type': 'application/json'
-		}
-
-		tasks.forEach( todo => {
-			fetch('https://api.todoist.com/rest/v1/tasks', { 
-				method: 'POST',
-				headers : headers,
-				body: JSON.stringify({ content: todo, project_id: projectId })
-			})
-
-			.then(res => {
-				item ++
-				console.log('task added')
-				if (item == tasks.length) {
-					window.open("https://todoist.com/showProject?id=" + projectId, "_blank")
-					view.close()
-				}
-			})
-
-			.catch(error => {
-				view.alert("Task"+ item +" push failed!", error);
-			})
-
-		})
 	},
 
 }
