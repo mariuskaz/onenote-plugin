@@ -15,6 +15,7 @@ let view = {
 
 	addLinks: false,
 	actions: ["click", "change"],
+	avatar: "../../assets/avatar.png",
 	pageTitle: "Onenote",
 	tasks: [],
 
@@ -114,7 +115,7 @@ todoist = {
 				localStorage.setItem("todoist_token", todoist.token)
 
 				view.show(settings).update({
-					avatar: data.user.avatar_medium,
+					avatar: data.user.avatar_medium || view.avatar,
 					user: data.user.full_name,
 					mail: data.user.email,
 					tasks: view.tasks.length + " task(s)",
@@ -248,7 +249,7 @@ export async function getPageTasks() {
 
 			if (view.tasks.length == 0) {
 				view.alert("No tasks found! There is nothing to export.", 
-						"No to-do tags found on this page!")
+						   "No to-do tags found on this page!")
 
 			} else if (todoist.token == "none") {
 				view.show(connect)
