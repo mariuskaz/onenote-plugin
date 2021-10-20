@@ -24,6 +24,18 @@ let view = {
 		return document.getElementById(id)
 	},
 
+	getValue(id) {
+		let el = this.get(id)
+		switch (el.nodeName) {
+			case 'INPUT':
+				return el.value
+			case 'IMG':
+				return el.src
+			default:
+				return el.innerText
+		}
+	},
+
 	update(data) {
 		for (let id in data) {
 			let el = this.get(id)
@@ -60,7 +72,7 @@ let view = {
 	},
 
 	connect() {
-		let token = view.get("token").value
+		let token = view.getValue("token")
 		if (token.length > 0) todoist.sync(token)
 	},
 
@@ -154,7 +166,9 @@ todoist = {
 			'Authorization': 'Bearer ' + this.token,
 			'Content-Type': 'application/json'
 		},
+		
 		project_id = parseInt(project) || todoist.uuid(),
+		name = view.getValue("project"),
 		commands = []
 
 		console.log('projectId', project_id)
@@ -165,7 +179,7 @@ todoist = {
 				type: "project_add",
 				temp_id: project_id,
 				uuid: todoist.uuid(),
-				args: { name: view.pageTitle }
+				args: { name }
 			})
 		} 
 
@@ -179,6 +193,7 @@ todoist = {
 				uuid: todoist.uuid(),
 				args: { content, project_id }
 			})
+
 		})
 
 		fetch(todoist.url, { 
