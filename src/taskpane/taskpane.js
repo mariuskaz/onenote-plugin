@@ -38,13 +38,13 @@ let view = {
 					el.innerHTML = data[id]
 			}
 		}
-   	},
+   },
  
 	show(component) {
 		this.get("app-body").innerHTML = component.template
 
 		view.actions.forEach( action => {
-			let elements = this.get('app-body').querySelectorAll("["+action+"]")
+			let elements = this.get('app-body').querySelectorAll(`[${action}]`)
 			elements.forEach( el => {
 				el.addEventListener(action, view[el.getAttribute(action)])
 			})
@@ -93,12 +93,12 @@ let view = {
 todoist = {
 
 	token: localStorage["todoist_token"] || "none",
+	url: "https://api.todoist.com/sync/v8/sync",
 
 	sync(token) {
 		if (token) this.token = token
 
-		let sync_url = "https://api.todoist.com/sync/v8/sync",
-		headers = {
+		let headers = {
 			'Authorization': 'Bearer ' + this.token,
 			'Content-Type': 'application/json',
 		},
@@ -109,7 +109,7 @@ todoist = {
 		}
 
 		view.show(status)
-		fetch(sync_url, { 
+		fetch(todoist.url, { 
 			method: 'POST',
 			headers : headers,
 			body: JSON.stringify(params)
@@ -150,51 +150,59 @@ todoist = {
 
 	push(project = "new", tasks = []) {
 		
-		let item = 0, headers = {
+		let headers = {
 			'Authorization': 'Bearer ' + this.token,
 			'Content-Type': 'application/json'
-		}
+		},
+		project_id = parseInt(project) || todoist.uuid(),
+		commands = []
 
+		console.log('projectId', project_id)
 		view.show(status)
+
 		if (project == "new") {
-			fetch('https://api.todoist.com/rest/v1/projects', { 
-				method: 'POST',
-				headers : headers,
-				body: JSON.stringify({ name: view.pageTitle })
+			commands.push({
+				type: "project_add",
+				temp_id: project_id,
+				uuid: todoist.uuid(),
+				args: { name: view.pageTitle }
 			})
-			.then(res => res.json())
-			.then(project => todoist.push(project.id, tasks))
+		} 
 
-		} else {
+		tasks.forEach( todo => {
+			let content = view.addLinks ? 
+				`[${todo}](${view.pageUrl})` : todo
 
-			let projectId = parseInt(project)
-			console.log('projectId:', projectId)
-
-			tasks.forEach( task => {
-				let todo = view.addLinks ? 
-					`[${task}](${view.pageUrl})` : task
-
-				fetch('https://api.todoist.com/rest/v1/tasks', { 
-					method: 'POST',
-					headers : headers,
-					body: JSON.stringify({ content: todo, project_id: projectId })
-				})
-
-				.then(res => {
-					item ++
-					console.log('tasks pushed:', res.ok)
-					if (item == tasks.length) {
-						window.open("https://todoist.com/showProject?id=" + projectId, "_blank")
-						view.close()
-					}
-				})
-
-				.catch(error => {
-					view.alert("Task"+ item +" push failed!", error);
-				})
+			commands.push({
+				type: "item_add",
+				temp_id: todoist.uuid(),
+				uuid: todoist.uuid(),
+				args: { content, project_id }
 			})
-			
-		}
+		})
+
+		fetch(todoist.url, { 
+			method: 'POST',
+			headers : headers,
+			body: JSON.stringify({ commands })
+		})
+		.then(res => res.json())
+
+		.then(data => {
+			let projectId = data.temp_id_mapping[project_id] || project_id
+			window.open("https://todoist.com/showProject?id=" + projectId, "_blank")
+			view.close()
+		})
+
+	},
+
+	uuid() {
+		return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+			let d = new Date().getTime(),
+			r = (d + Math.random()*16)%16 | 0
+			d = Math.floor(d/16)
+			return (c=='x' ? r : (r&0x7|0x8)).toString(16)
+		})
 	},
 
 }
@@ -237,11 +245,7 @@ export async function getPageTasks() {
 					if (p.type == "RichText") {
 						p.load("richtext")
 						strings.push(p.richText.getHtml())
-					}
-
-					/* https://docs.microsoft.com/en-us/javascript/api/onenote/onenote.table?view=onenote-js-1.1 */
-
-					if (p.type == "Table") {
+					} else if (p.type == "Table") {
 						p.load("table/rows/items/cells/paragraphs/type") 
 						tables.push(p.table)
 					}
@@ -278,7 +282,7 @@ export async function getPageTasks() {
 
 			if (view.tasks.length == 0)
 				view.alert("No tasks found! There is nothing to export.", 
-						   "No to-do tags found on this page!")
+							  "No to-do tags found on this page!")
 			else if (todoist.token == "none") view.show(connect)
 			else todoist.sync()
 			
