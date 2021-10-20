@@ -17,6 +17,7 @@ let view = {
 	actions: ["click", "change"],
 	avatar: "../../assets/avatar.png",
 	pageTitle: "Onenote",
+	pageUrl: location.href,
 	tasks: [],
 
 	get(id) {
@@ -61,6 +62,10 @@ let view = {
 	connect() {
 		let token = view.get("token").value
 		if (token.length > 0) todoist.sync(token)
+	},
+
+	toggle() {
+		view.addLinks = !view.addLinks
 	},
 
 	push() {
@@ -130,6 +135,11 @@ todoist = {
 
 				let projects = view.get("dropdown")
 				new fabric['Dropdown'](projects)
+
+				if (view.addLinks) {
+					let links = view.get("add-links")
+					if (links != null) links.classList.add("is-selected")
+				}
 			})
 		})
 
@@ -145,6 +155,7 @@ todoist = {
 			'Content-Type': 'application/json'
 		}
 
+		view.show(status)
 		if (project == "new") {
 			fetch('https://api.todoist.com/rest/v1/projects', { 
 				method: 'POST',
@@ -157,22 +168,27 @@ todoist = {
 		} else {
 
 			let projectId = parseInt(project)
-			console.log('projectId', projectId)
+			console.log('projectId:', projectId)
 
-			tasks.forEach( todo => {
+			tasks.forEach( task => {
+				let todo = view.addLinks ? 
+					`[${task}](${view.pageUrl})` : task
+
 				fetch('https://api.todoist.com/rest/v1/tasks', { 
 					method: 'POST',
 					headers : headers,
 					body: JSON.stringify({ content: todo, project_id: projectId })
 				})
+
 				.then(res => {
 					item ++
-					console.log('tasks:', res.ok)
+					console.log('tasks pushed:', res.ok)
 					if (item == tasks.length) {
 						window.open("https://todoist.com/showProject?id=" + projectId, "_blank")
 						view.close()
 					}
 				})
+
 				.catch(error => {
 					view.alert("Task"+ item +" push failed!", error);
 				})
@@ -199,12 +215,13 @@ export async function getPageTasks() {
 		tables = [],
 		strings = []
 
-		page.load("title")
+		page.load("title, webUrl")
 		page.contents.load("type, items");
 		return context.sync()
 
 		.then(() => {
 			view.pageTitle = page.title
+			view.pageUrl = page.webUrl
 			page.contents.items.forEach(item => {
 				if (item.type == 'Outline') {
 					item.load("outline/paragraphs, outline/paragraphs/type")
