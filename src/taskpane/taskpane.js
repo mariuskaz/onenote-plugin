@@ -50,9 +50,9 @@ let view = {
 					el.innerHTML = data[id]
 			}
 		}
-   },
+	},
  
-	show(component) {
+	show(component, data) {
 		this.get("app-body").innerHTML = component.template
 
 		view.actions.forEach( action => {
@@ -64,11 +64,13 @@ let view = {
 
 		let toggles = document.querySelectorAll(".ms-Toggle")
 		toggles.forEach( toggle => new fabric['Toggle'](toggle) )
+
+		if (data != undefined) this.update(data)
 		return this
 	},
 
 	alert(title, details = "unknown") {
-		this.show(alert).update({ title, details })
+		this.show(alert, { title, details })
 	},
 
 	connect() {
@@ -118,9 +120,11 @@ todoist = {
 		params = {
 			sync_token: '*',
 			resource_types: ["all"]
-		}
+		},
+		
+		message = "Connecting..."
+		view.show(status, { message })
 
-		view.show(status)
 		fetch(todoist.url, { 
 			method: 'POST',
 			headers : headers,
@@ -131,10 +135,10 @@ todoist = {
 			res.json().then(data => {
 				localStorage.setItem("todoist_token", todoist.token)
 
-				view.show(settings).update({
+				view.show(settings, {
 					avatar: data.user.avatar_medium || view.avatar,
 					user: data.user.full_name,
-					mail: data.user.email,
+					mail: data.user.email.toLowerCase(),
 					tasks: view.tasks.length + " task(s)",
 					project: view.pageTitle,
 					task: view.tasks[0].substring(0, 34),
@@ -162,24 +166,24 @@ todoist = {
 
 	push(project = "new", tasks = []) {
 		
-		let headers = {
+		let message = "Proccesing...",
+		headers = {
 			'Authorization': 'Bearer ' + this.token,
 			'Content-Type': 'application/json'
 		},
-		
 		project_id = parseInt(project) || todoist.uuid(),
-		name = view.getValue("project"),
+		title = view.getValue("project"),
 		commands = []
 
 		console.log('projectId', project_id)
-		view.show(status)
+		view.show(status, { message })
 
 		if (project == "new") {
 			commands.push({
 				type: "project_add",
 				temp_id: project_id,
 				uuid: todoist.uuid(),
-				args: { name }
+				args: { name: title }
 			})
 		} 
 
@@ -207,6 +211,10 @@ todoist = {
 			let projectId = data.temp_id_mapping[project_id] || project_id
 			window.open("https://todoist.com/showProject?id=" + projectId, "_blank")
 			view.close()
+		})
+
+		.catch(error => {
+			view.alert("Export failed!", error);
 		})
 
 	},
@@ -297,7 +305,7 @@ export async function getPageTasks() {
 
 			if (view.tasks.length == 0)
 				view.alert("No tasks found! There is nothing to export.", 
-							  "No to-do tags found on this page!")
+							"No to-do tags found on this page!")
 			else if (todoist.token == "none") view.show(connect)
 			else todoist.sync()
 			
