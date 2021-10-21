@@ -26,14 +26,7 @@ let view = {
 
 	getValue(id) {
 		let el = this.get(id)
-		switch (el.nodeName) {
-			case 'INPUT':
-				return el.value
-			case 'IMG':
-				return el.src
-			default:
-				return el.innerText
-		}
+		return el.value || el.innerText || ""
 	},
 
 	update(data) {
@@ -119,7 +112,7 @@ todoist = {
 
 		params = {
 			sync_token: '*',
-			resource_types: ["all"]
+			resource_types: ["user","projects"]
 		},
 		
 		message = "Connecting..."
