@@ -6,9 +6,9 @@ export default {
 				<div class="ms-Persona-imageArea">
 					<img id="avatar" class="ms-Persona-image" src="https://static2.sharepointonline.com/files/fabric/office-ui-fabric-js/images/persona.person.png">
 				</div>
-				<div class="ms-Persona-presence">
+				<!-- div class="ms-Persona-presence">
 					<i class="ms-Persona-presenceIcon ms-Icon ms-Icon--SkypeCheck"></i>
-				</div>
+				</div -->
 				<div class="ms-Persona-details">
 					<div id="user" class="ms-Persona-primaryText">User name</div>
 					<div id="mail" class="ms-Persona-secondaryText">mail</div>
@@ -31,7 +31,6 @@ export default {
 					</div>
 				</div>
 			</div>
-
 			<div class="ms-Toggle" style="margin:20px 0px 30px;">
 				<span class="ms-Toggle-description">Link tasks to this page</span> 
 				<input type="checkbox" id="toggle-links" class="ms-Toggle-input" />
@@ -40,14 +39,12 @@ export default {
 					<span class="ms-Label ms-Label--on">On</span> 
 				</label>
 			</div>
-
 			<h3 class="ms-font-xl"> Preview </h3>
 			<div>
 				<h3 id="project">Inbox</h3>
 				<hr style="border:none;background-color:lightgray;height:1px;margin-top:-5px">
 				<p style="padding:5px;margin-top:15px;">&#9898;&nbsp;&nbsp;&nbsp;<span id="task"></span></p>
 			</div>
-
 			<div style="margin-top: 40px;">
 				<button click="push" class="ms-Button ms-Button--primary">
 					<span class="ms-Button-icon"><i class="ms-Icon ms-Icon--plus"></i></span> 
@@ -58,6 +55,11 @@ export default {
 					<span class="ms-Button-label">Cancel</span> 
 				</button>
 			</div>
+			<button click="disconnect" class="ms-Button ms-Button--compound" style="margin-top:50px">
+				<span class="ms-Button-icon"><i class="ms-Icon ms-Icon--plus"></i></span> 
+				<span class="ms-Button-label">Disconnect</span> 
+				<span class="ms-Button-description">from current connected Todoist account</span> 
+			</button>
 		</div>
     `
 }

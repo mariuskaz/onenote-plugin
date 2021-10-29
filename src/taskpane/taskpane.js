@@ -40,7 +40,7 @@ let view = {
 					el.src = data[id]
 					break
 				default:
-					el.innerHTML = data[id]
+					el.innerText = data[id]
 			}
 		}
 	},
@@ -69,6 +69,12 @@ let view = {
 	connect() {
 		let token = view.getValue("token")
 		if (token.length > 0) todoist.sync(token)
+	},
+
+	disconnect() {
+		localStorage.removeItem('todoist_token')
+		todoist.token = 'none'
+		view.close()
 	},
 
 	toggle() {
@@ -213,7 +219,7 @@ todoist = {
 	},
 
 	uuid() {
-		return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+		return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
 			let d = new Date().getTime(),
 			r = (d + Math.random()*16)%16 | 0
 			d = Math.floor(d/16)
@@ -287,18 +293,17 @@ export async function getPageTasks() {
 		})
 
 		.then(() => {
+
 			strings.forEach( html => {
 				let doc = parser.parseFromString(html.value, 'text/html'),
 				tag = doc.querySelector("[data-tag=to-do]")
 				if (tag != null) view.tasks.push(tag.innerText)
 			})
-
 			console.log('tasks found:', view.tasks.length)
-			//todoist.token = "none"
-
+			
 			if (view.tasks.length == 0)
 				view.alert("No tasks found! There is nothing to export.", 
-							"No to-do tags found on this page!")
+						   "No to-do tags found on this page!")
 			else if (todoist.token == "none") view.show(connect)
 			else todoist.sync()
 			
