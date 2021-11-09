@@ -121,9 +121,9 @@ let view = {
 
 	refresh() {
 		let projects = view.get("projects"),
-		project = projects.selectedOptions[0].text
-		if (projects.value == "new") project = view.pageTitle
-		view.update({ project })
+		title = projects.selectedOptions[0].text
+		if (projects.value == "new") title = view.pageTitle
+		view.update({ title })
 	},
 
 	close() {
@@ -168,8 +168,8 @@ todoist = {
 					user: data.user.full_name,
 					mail: data.user.email.toLowerCase(),
 					tasks: view.tasks.length + " task(s)",
-					project: view.pageTitle,
-					task: view.tasks[0].substring(0, 34),
+					title: view.pageTitle,
+					preview: view.tasks[0].substring(0, 34),
 				})
 
 				let list = view.get("projects")
@@ -192,31 +192,31 @@ todoist = {
 		})
 	},
 
-	push(project = "new", items = []) {
+	push(id = "new", items = []) {
 		
-		let message = "Proccesing...",
+		let project = { id, items },
+		project_id = parseInt(project.id) || todoist.uuid(),
+		commands = [],
+
 		headers = {
 			'Authorization': 'Bearer ' + this.token,
 			'Content-Type': 'application/json'
 		},
-		project_id = parseInt(project) || todoist.uuid(),
-		title = view.getValue("project"),
-		commands = []
 
-		console.log('projectId', project_id)
+		message = "Proccesing..."
 		view.show(status, { message })
 
-		if (project == "new") {
+		if (project.id == "new") {
 			commands.push({
 				type: "project_add",
 				temp_id: project_id,
 				uuid: todoist.uuid(),
-				args: { name: title }
+				args: { name: view.pageTitle }
 			})
 		} 
 
 		view.tasks.forEach( todo => {
-			if (!items.includes(todo)) {
+			if (!project.items.includes(todo)) {
 				let content = view.addLinks ? `[${todo}](${view.pageUrl})` : todo
 				commands.push({
 					type: "item_add",

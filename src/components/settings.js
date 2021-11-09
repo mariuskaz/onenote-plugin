@@ -6,9 +6,6 @@ export default {
 				<div class="ms-Persona-imageArea">
 					<img id="avatar" class="ms-Persona-image" src="https://static2.sharepointonline.com/files/fabric/office-ui-fabric-js/images/persona.person.png">
 				</div>
-				<!-- div class="ms-Persona-presence">
-					<i class="ms-Persona-presenceIcon ms-Icon ms-Icon--SkypeCheck"></i>
-				</div -->
 				<div class="ms-Persona-details">
 					<div id="user" class="ms-Persona-primaryText">User name</div>
 					<div id="mail" class="ms-Persona-secondaryText">mail</div>
@@ -41,9 +38,9 @@ export default {
 			</div>
 			<h3 class="ms-font-xl"> Preview </h3>
 			<div>
-				<h3 id="project">Inbox</h3>
+				<h3 id="title">Inbox</h3>
 				<hr style="border:none;background-color:lightgray;height:1px;margin-top:-5px">
-				<p style="padding:5px;margin-top:15px;">&#9898;&nbsp;&nbsp;&nbsp;<span id="task"></span></p>
+				<p style="padding:5px;margin-top:15px;">&#9898;&nbsp;&nbsp;&nbsp;<span id="preview"></span></p>
 			</div>
 			<div style="margin-top: 40px;">
 				<button click="push" class="ms-Button ms-Button--primary">
