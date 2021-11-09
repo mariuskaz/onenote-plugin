@@ -82,8 +82,37 @@ let view = {
 	},
 
 	push() {
-		let projects = view.get('projects')
-		todoist.push(projects.value, view.tasks)
+		let projects = view.get('projects'),
+		project_id = projects.value,
+		headers = {
+			'Authorization': 'Bearer ' + todoist.token,
+			'Content-Type': 'application/json'
+		}
+
+		if (project_id != "new") {
+
+			fetch("https://api.todoist.com/sync/v8/projects/get_data", { 
+				method: 'POST',
+				headers : headers,
+				body: JSON.stringify({ project_id })
+			})
+
+			.then(res => {
+				res.json().then(data => {
+					let items = []
+					data.items.forEach( item => items.push( item.content.split(']')[0].replace("[","") ))
+					todoist.push(project_id, items)
+				})
+			})
+			
+			.catch(error => {
+				view.alert("Todoist sync failed!", error);
+			})
+
+		} else {
+			todoist.push()
+		}
+
 	},
 
 	retry() {
@@ -163,7 +192,7 @@ todoist = {
 		})
 	},
 
-	push(project = "new", tasks = []) {
+	push(project = "new", items = []) {
 		
 		let message = "Proccesing...",
 		headers = {
@@ -186,16 +215,16 @@ todoist = {
 			})
 		} 
 
-		tasks.forEach( todo => {
-			let content = view.addLinks ? 
-				`[${todo}](${view.pageUrl})` : todo
-
-			commands.push({
-				type: "item_add",
-				temp_id: todoist.uuid(),
-				uuid: todoist.uuid(),
-				args: { content, project_id }
-			})
+		view.tasks.forEach( todo => {
+			if (!items.includes(todo)) {
+				let content = view.addLinks ? `[${todo}](${view.pageUrl})` : todo
+				commands.push({
+					type: "item_add",
+					temp_id: todoist.uuid(),
+					uuid: todoist.uuid(),
+					args: { content, project_id }
+				})
+			}
 
 		})
 
@@ -204,12 +233,13 @@ todoist = {
 			headers : headers,
 			body: JSON.stringify({ commands })
 		})
-		.then(res => res.json())
-
-		.then(data => {
-			let projectId = data.temp_id_mapping[project_id] || project_id
-			window.open("https://todoist.com/showProject?id=" + projectId, "_blank")
-			view.close()
+		
+		.then(res => {
+			res.json().then(data => {
+				let projectId = data.temp_id_mapping[project_id] || project_id
+				window.open("https://todoist.com/showProject?id=" + projectId, "_blank")
+				view.close()
+			})
 		})
 
 		.catch(error => {
