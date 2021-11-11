@@ -82,35 +82,19 @@ let view = {
 	},
 
 	push() {
-		let projects = view.get('projects'),
-		project_id = projects.value,
-		headers = {
-			'Authorization': 'Bearer ' + todoist.token,
-			'Content-Type': 'application/json'
-		}
+		let projectId = view.getValue('projects')
 
-		if (project_id != "new") {
-
-			fetch("https://api.todoist.com/sync/v8/projects/get_data", { 
-				method: 'POST',
-				headers : headers,
-				body: JSON.stringify({ project_id })
-			})
-
-			.then(res => {
-				res.json().then(data => {
-					let items = []
-					data.items.forEach( item => items.push( item.content.split(']')[0].replace("[","") ))
-					todoist.push(project_id, items)
-				})
-			})
-			
-			.catch(error => {
-				view.alert("Todoist sync failed!", error);
-			})
+		if (projectId == "new") {
+			todoist.push(view.tasks)
 
 		} else {
-			todoist.push()
+			todoist.getData(projectId).then(data => {
+				let items = [], todos = []
+				data.items.forEach( item => items.push(tools.getText(item.content)) )
+				todos = view.tasks.filter( todo => !items.includes(todo) )
+				todoist.push(todos, projectId)
+			})
+
 		}
 
 	},
@@ -121,9 +105,23 @@ let view = {
 
 	refresh() {
 		let projects = view.get("projects"),
-		title = projects.selectedOptions[0].text
-		if (projects.value == "new") title = view.pageTitle
-		view.update({ title })
+		title = projects.selectedOptions[0].text,
+		tasks = view.tasks.length + " new task(s)"
+
+		if (projects.value == "new") {
+			title = view.pageTitle
+			view.update({ title, tasks	})
+		
+		} else {
+			todoist.getData(projects.value).then(data => {
+				let items = [], todos = []
+				data.items.forEach( item => items.push(tools.getText(item.content)) )
+				todos = view.tasks.filter( todo => !items.includes(todo) )
+				tasks = todos.length + " new task(s)"
+				view.update({ title, tasks })
+			})
+		}
+			
 	},
 
 	close() {
@@ -192,9 +190,8 @@ todoist = {
 		})
 	},
 
-	push(id = "new", items = []) {
-		
-		let project = { id, items },
+	push(tasks = [], id = "new") {
+		let project = { id, tasks },
 		project_id = parseInt(project.id) || todoist.uuid(),
 		commands = [],
 
@@ -215,36 +212,39 @@ todoist = {
 			})
 		} 
 
-		view.tasks.forEach( todo => {
-			if (!project.items.includes(todo)) {
-				let content = view.addLinks ? `[${todo}](${view.pageUrl})` : todo
-				commands.push({
-					type: "item_add",
-					temp_id: todoist.uuid(),
-					uuid: todoist.uuid(),
-					args: { content, project_id }
-				})
-			}
-
-		})
-
-		fetch(todoist.url, { 
-			method: 'POST',
-			headers : headers,
-			body: JSON.stringify({ commands })
-		})
-		
-		.then(res => {
-			res.json().then(data => {
-				let projectId = data.temp_id_mapping[project_id] || project_id
-				window.open("https://todoist.com/showProject?id=" + projectId, "_blank")
-				view.close()
+		tasks.forEach( todo => {
+			let content = view.addLinks ? `[${todo}](${view.pageUrl})` : todo
+			commands.push({
+				type: "item_add",
+				temp_id: todoist.uuid(),
+				uuid: todoist.uuid(),
+				args: { content, project_id }
 			})
 		})
 
-		.catch(error => {
-			view.alert("Export failed!", error);
-		})
+		if (commands.length == 0) {
+			view.alert("No new tasks found.", 
+					   "No new tasks found on this page!")
+
+		} else {
+			fetch(todoist.url, { 
+				method: 'POST',
+				headers : headers,
+				body: JSON.stringify({ commands })
+			})
+			
+			.then(res => {
+				res.json().then(data => {
+					let projectId = data.temp_id_mapping[project_id] || project_id
+					window.open("https://todoist.com/showProject?id=" + projectId, "_blank")
+					view.close()
+				})
+			})
+
+			.catch(error => {
+				view.alert("Export failed!", error);
+			})
+		}
 
 	},
 
@@ -257,6 +257,27 @@ todoist = {
 		})
 	},
 
+	async getData(project_id) {
+		return await fetch("https://api.todoist.com/sync/v8/projects/get_data", { 
+			method: 'POST',
+			headers : {
+				'Authorization': 'Bearer ' + this.token,
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({ project_id })
+		})
+		.then( res => res.json())
+		.catch(error => {
+			view.alert("Todoist sync failed!", error);
+		})
+	},
+
+},
+
+tools = {
+	getText(content) {
+		return content.split(']')[0].replace(/\s/gi, " ").replace(/\[/gi, "")
+	},
 }
 
 Office.onReady((info) => {
