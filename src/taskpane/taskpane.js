@@ -81,28 +81,6 @@ let view = {
 		view.addLinks = !view.addLinks
 	},
 
-	push() {
-		let projectId = view.getValue('projects')
-
-		if (projectId == "new") {
-			todoist.push(view.tasks)
-
-		} else {
-			todoist.getData(projectId).then(data => {
-				let items = [], todos = []
-				data.items.forEach( item => items.push(tools.getText(item.content)) )
-				todos = view.tasks.filter( todo => !items.includes(todo) )
-				todoist.push(todos, projectId)
-			})
-
-		}
-
-	},
-
-	retry() {
-		getPageTasks()
-	},
-
 	refresh() {
 		let projects = view.get("projects"),
 		title = projects.selectedOptions[0].text,
@@ -110,7 +88,7 @@ let view = {
 
 		if (projects.value == "new") {
 			title = view.pageTitle
-			view.update({ title, tasks	})
+			view.update({ title, tasks })
 		
 		} else {
 			todoist.getData(projects.value).then(data => {
@@ -122,6 +100,26 @@ let view = {
 			})
 		}
 			
+	},
+
+	push() {
+		let projectId = view.getValue('projects')
+
+		if (projectId == "new") {
+			todoist.push(view.tasks)
+
+		} else {
+			todoist.getData(projectId).then(data => {
+				let items = [], tasks = []
+				data.items.forEach( item => items.push(tools.getText(item.content)) )
+				tasks = view.tasks.filter( todo => !items.includes(todo) )
+				todoist.push(tasks, projectId)
+			})
+		}
+	},
+
+	retry() {
+		getPageTasks()
 	},
 
 	close() {
@@ -344,11 +342,10 @@ export async function getPageTasks() {
 		})
 
 		.then(() => {
-
 			strings.forEach( html => {
 				let doc = parser.parseFromString(html.value, 'text/html'),
 				tag = doc.querySelector("[data-tag=to-do]")
-				if (tag != null) view.tasks.push(tag.innerText)
+				if (tag != null) view.tasks.push(tag.innerText.trim())
 			})
 			console.log('tasks found:', view.tasks.length)
 			
