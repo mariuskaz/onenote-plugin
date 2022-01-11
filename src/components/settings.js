@@ -11,9 +11,9 @@ export default {
 					<div id="mail" class="ms-Persona-secondaryText">mail</div>
 				</div>
 			</div>
-			<div id="dropdown" class="ms-Dropdown" tabindex="0" style="margin-top: 30px;">
+			<div id="dropdown" class="ms-Dropdown" tabindex="0" style="margin-top:30px;">
 				<i class="ms-Dropdown-caretDown ms-Icon ms-Icon--ChevronDown"></i>
-				<select change="refresh" id="projects" class="ms-Dropdown-select ms-TextField--underlined">
+				<select change="refresh" id="projects" class="ms-Dropdown-select">
 					<option value="new">Create new project</option>
 				</select>
 			</div>

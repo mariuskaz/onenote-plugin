@@ -176,11 +176,15 @@ todoist = {
 
 				let list = view.get("projects")
 				data.projects.forEach(project => {
-					list.options.add(new Option(project.name, project.id))
+					var selected = project.name == view.state.pageTitle ? true : false
+					list.options.add(new Option(project.name, project.id, selected, selected))
 				})
 
 				let projects = view.get("dropdown")
 				new fabric['Dropdown'](projects)
+
+				projects.querySelectorAll('.ms-Dropdown-title')[0].innerHTML = list.selectedOptions[0].text
+				view.methods.refresh()
 
 				if (view.state.addLinks) {
 					let links = view.get("add-links")
@@ -197,7 +201,7 @@ todoist = {
 	push(tasks = [], id = "new") {
 
 		if (tasks.length > 0) {
-			
+
 			let project = { id, tasks },
 			project_id = parseInt(project.id) || todoist.uuid(),
 			commands = [],
