@@ -23,69 +23,6 @@ let view = {
 
 	listeners: ["click", "change"],
 
-	methods: {
-
-		connect() {
-			let token = view.getValue("token")
-			if (token.length > 0) todoist.sync(token)
-		},
-	
-		disconnect() {
-			localStorage.removeItem('todoist_token')
-			todoist.token = 'none'
-			Office.context.ui.closeContainer()
-		},
-	
-		toggle() {
-			view.state.addLinks = !view.state.addLinks
-		},
-	
-		refresh() {
-			let projects = view.get("projects"),
-			title = projects.selectedOptions[0].text,
-			tasks = view.state.tasks.length + " new task(s)"
-	
-			if (projects.value == "new") {
-				title = view.state.pageTitle
-				view.update({ title, tasks })
-			
-			} else {
-				todoist.getData(projects.value).then(data => {
-					let items = [], todos = []
-					data.items.forEach( item => items.push(tools.getText(item.content)) )
-					todos = view.state.tasks.filter( todo => !items.includes(todo) )
-					tasks = todos.length + " new task(s)"
-					view.update({ title, tasks })
-				})
-			}
-				
-		},
-	
-		push() {
-			let projectId = view.getValue('projects')
-	
-			if (projectId == "new") {
-				todoist.push(view.state.tasks)
-	
-			} else {
-				todoist.getData(projectId).then(data => {
-					let items = [], tasks = []
-					data.items.forEach( item => items.push(tools.getText(item.content)) )
-					tasks = view.state.tasks.filter( todo => !items.includes(todo) )
-					todoist.push(tasks, projectId)
-				})
-			}
-		},
-	
-		retry() {
-			getPageTasks()
-		},
-	
-		close() {
-			Office.context.ui.closeContainer()
-		},
-	},
-
 	get(id) {
 		return document.getElementById(id)
 	},
@@ -117,7 +54,7 @@ let view = {
 		view.listeners.forEach( action => {
 			let elements = this.get('app-body').querySelectorAll(`[${action}]`)
 			elements.forEach( el => {
-				el.addEventListener(action, view.methods[el.getAttribute(action)])
+				el.addEventListener(action, view[el.getAttribute(action)])
 			})
 		})
 
@@ -131,6 +68,66 @@ let view = {
 	alert(title, details = "unknown") {
 		this.show(alert, { title, details })
 	},
+
+	connect() {
+		let token = view.getValue("token")
+		if (token.length > 0) todoist.sync(token)
+	},
+
+	disconnect() {
+		localStorage.removeItem('todoist_token')
+		todoist.token = 'none'
+		view.close()
+	},
+
+	toggle() {
+		view.state.addLinks = !view.state.addLinks
+	},
+
+	refresh() {
+		let projects = view.get("projects"),
+		title = projects.selectedOptions[0].text,
+		tasks = view.state.tasks.length + " new task(s)"
+
+		if (projects.value == "new") {
+			title = view.state.pageTitle
+			view.update({ title, tasks })
+		
+		} else {
+			todoist.getData(projects.value).then(data => {
+				let items = [], todos = []
+				data.items.forEach( item => items.push(tools.getText(item.content)) )
+				todos = view.state.tasks.filter( todo => !items.includes(todo) )
+				tasks = todos.length + " new task(s)"
+				view.update({ title, tasks })
+			})
+		}
+			
+	},
+
+	push() {
+		let projectId = view.getValue('projects')
+
+		if (projectId == "new") {
+			todoist.push(view.state.tasks)
+
+		} else {
+			todoist.getData(projectId).then(data => {
+				let items = [], tasks = []
+				data.items.forEach( item => items.push(tools.getText(item.content)) )
+				tasks = view.state.tasks.filter( todo => !items.includes(todo) )
+				todoist.push(tasks, projectId)
+			})
+		}
+	},
+
+	retry() {
+		getPageTasks()
+	},
+
+	close() {
+		Office.context.ui.closeContainer()
+	}
 
 },
 
@@ -149,7 +146,7 @@ todoist = {
 
 		params = {
 			sync_token: '*',
-			resource_types: ["user","projects"]
+			resource_types: ["user", "projects"]
 		},
 		
 		message = "Connecting..."
@@ -184,7 +181,7 @@ todoist = {
 				new fabric['Dropdown'](projects)
 
 				projects.querySelectorAll('.ms-Dropdown-title')[0].innerHTML = list.selectedOptions[0].text
-				view.methods.refresh()
+				view.refresh()
 
 				if (view.state.addLinks) {
 					let links = view.get("add-links")
@@ -244,7 +241,7 @@ todoist = {
 				res.json().then(data => {
 					let projectId = data.temp_id_mapping[project_id] || project_id
 					window.open("https://todoist.com/showProject?id=" + projectId, "_blank")
-					Office.context.ui.closeContainer()
+					view.close()
 				})
 			})
 
