@@ -51,10 +51,10 @@ let view = {
 	show(component, data) {
 		this.get("app-body").innerHTML = component.template
 
-		view.listeners.forEach( action => {
+		this.listeners.forEach( action => {
 			let elements = this.get('app-body').querySelectorAll(`[${action}]`)
 			elements.forEach( el => {
-				el.addEventListener(action, view[el.getAttribute(action)])
+				el.addEventListener(action, this[el.getAttribute(action)])
 			})
 		})
 
@@ -106,7 +106,7 @@ let view = {
 	},
 
 	push() {
-		let projectId = view.getValue('projects')
+		let projectId = view.getValue("projects")
 
 		if (projectId == "new") {
 			todoist.push(view.state.tasks)
