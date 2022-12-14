@@ -26,7 +26,7 @@ export default {
 						</div>
 						<div class="ms-MessageBar-text">
 							Get your token from 
-							<a class="ms-Link" target="_blank" href="https://todoist.com/app/settings/integrations">Todoist integrations</a>
+							<a class="ms-Link" target="_blank" href="https://todoist.com/app/settings/integrations#element-0">Todoist integrations</a>
 						</div>
 					</div>
 				  </div>

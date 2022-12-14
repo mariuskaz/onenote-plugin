@@ -134,7 +134,7 @@ let view = {
 todoist = {
 
 	token: localStorage["todoist_token"] || "none",
-	url: "https://api.todoist.com/sync/v8/sync",
+	url: "https://api.todoist.com/sync/v9/sync",
 
 	sync(token) {
 		if (token) this.token = token
